@@ -1,20 +1,31 @@
 import Foundation
 
 extension String: JSONDecodable, JSONEncodable {
-  public init(jsonValue value: JSONValue) throws {
-    switch value {
-    case let string as String:
-        self = string
-    case let int as Int:
-        self = String(int)
-    default:
-        throw JSONDecodingError.couldNotConvert(value: value, to: String.self)
-    }
-  }
+      public init(jsonValue value: JSONValue) throws {
 
-  public var jsonValue: JSONValue {
-    return self
-  }
+        let string = value as? String
+
+        if (string == nil) {
+            do {
+                let data1 =  try JSONSerialization.data(withJSONObject: value, options: JSONSerialization.WritingOptions.prettyPrinted) // first of all convert json to the data
+                let convertedString = String(data: data1, encoding: String.Encoding.utf8) // the data will be converted to the string
+                if (convertedString == nil) {
+                    throw JSONDecodingError.couldNotConvert(value: value, to: String.self)
+                } else {
+                    self = convertedString ?? ""
+                }
+            } catch let myJSONError {
+                print(myJSONError)
+                throw JSONDecodingError.couldNotConvert(value: value, to: String.self)
+            }
+        } else {
+            self = string ?? ""
+        }
+      }
+
+      public var jsonValue: JSONValue {
+          return self
+      }
 }
 
 extension Int: JSONDecodable, JSONEncodable {
